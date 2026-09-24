@@ -5,7 +5,7 @@
 # like "red" or a hex code. Quote hex codes -- an unquoted # starts a comment.
 # Residues a set doesn't list are drawn in black.
 #
-# Built-in sets (chem, hydro, charge, rasmol, mono) are always available;
+# Built-in sets (chem, hydro, charge, rasmol, okabe_ito, mono) are always available;
 # a set here with the same name replaces the built-in one.
 # Preview every set:  ./seqlogo.py --swatches swatches.png
 

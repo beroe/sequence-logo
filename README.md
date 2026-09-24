@@ -23,7 +23,7 @@ Python 3.10+ with `numpy` and `matplotlib` (which brings in `fontTools`). `certi
     -f "Helvetica Neue:bold" -f "Georgia:bold" -f "google:Inter:900"
 
 # find installed fonts and their weights
-./seqlogo.py --list-fonts monaspace
+./seqlogo.py --list-fonts courier
 ```
 
 Input can be FASTA, Clustal, or plain text with one aligned sequence per line (`-` reads from stdin).
@@ -68,7 +68,7 @@ Run `./seqlogo.py --help` for the full list.
 
 ## Color sets
 
-There are four built-in color sets, all in a muted palette: `chem` (the default) colors residues by chemistry, `hydro` by hydrophobicity, `charge` by charge, and `rasmol` by RasMol's finer amino-acid groups. `mono` draws everything in black. Save your own in `seqlogo_styles.yaml` next to the script, one entry per set:
+There are six built-in color sets: `chem` (the default), `hydro`, and `charge` color residues by chemistry, hydrophobicity, and charge in a muted palette; `rasmol` uses RasMol's finer amino-acid groups; `okabe_ito` uses the chemistry groups in a colour-blind-safe palette; and `mono` draws everything in black. Save your own in `seqlogo_styles.yaml` next to the script, one entry per set:
 
 ```yaml
 okabe_ito:
@@ -94,7 +94,7 @@ Each key under a set is a group of one-letter residue codes (one letter is fine)
 
 ![Every available color set, from `--swatches`.](examples/png/swatches.png)
 
-![The four built-in color sets on the zinc-finger alignment.](examples/png/compare_colors.png)
+![Four of the built-in color sets on the zinc-finger alignment.](examples/png/compare_colors.png)
 
 ## Credits
 

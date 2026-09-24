@@ -90,6 +90,13 @@ COLOR_SCHEMES = {
                ("A", "#A5A5A5"),     # alanine
                ("P", "#DC9682"),     # proline
                ("W", "#B45AB4")],    # tryptophan
+    # WebLogo's chemistry groups in the colour-blind-safe Okabe-Ito palette
+    # (Okabe & Ito 2008).
+    "okabe_ito": [("GSTYC", "#009E73"),      # polar: bluish green
+                  ("NQ", "#CC79A7"),         # neutral: reddish purple
+                  ("KRH", "#0072B2"),        # basic: blue
+                  ("DE", "#D55E00"),         # acidic: vermillion
+                  ("PAWFLIMV", "#000000")],  # hydrophobic: black
     "mono": [],
 }
 
@@ -766,7 +773,7 @@ def main(argv=None):
     ap.add_argument("--list-fonts", nargs="?", const="", metavar="FILTER",
                     help="list installed font families (optionally filtered) and exit")
     ap.add_argument("-c", "--colors", action="append", metavar="NAME",
-                    help="colour set: built-in (chem, hydro, charge, rasmol, mono) "
+                    help="colour set: built-in (chem, hydro, charge, rasmol, okabe_ito, mono) "
                          "or one saved in the styles file (default chem); "
                          "repeat to compare")
     ap.add_argument("-s", "--styles", default=str(STYLES_FILE), metavar="FILE",
