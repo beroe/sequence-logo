@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
+
+# Personal Claude Code settings
+.claude/settings.local.json
+
+# Generated examples (rebuild with examples/make_examples.sh); keep only the
+# images README.md embeds
+examples/png/*
+!examples/png/zf_oswald.png
+!examples/png/swatches.png
+!examples/png/compare_colors.png
+examples/pdf/
+seqlogo-README.pdf
+
+# Scratch output in the top folder
+courier-example*.png
+logo.pdf
+
+# Logos written to the top folder (default output names land here)
+/*.png

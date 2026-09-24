@@ -1,0 +1,70 @@
+# Named colour sets for seqlogo.py. Select one with:  ./seqlogo.py aln.fasta -c NAME
+#
+# Each top-level key is a set name. Under it, each key is a group of one-letter
+# residue codes (a single letter is fine) and each value is a colour: a name
+# like "red" or a hex code. Quote hex codes -- an unquoted # starts a comment.
+# Residues a set doesn't list are drawn in black.
+#
+# Built-in sets (chem, hydro, charge, rasmol, mono) are always available;
+# a set here with the same name replaces the built-in one.
+# Preview every set:  ./seqlogo.py --swatches swatches.png
+
+# WebLogo's chemistry residue groups in the colour-blind-safe Okabe-Ito palette
+# (Okabe & Ito 2008).
+okabe_ito:
+  GSTYC: "#009E73"    # polar: bluish green
+  NQ: "#CC79A7"       # neutral: reddish purple
+  KRH: "#0072B2"      # basic: blue
+  DE: "#D55E00"       # acidic: vermillion
+  PAWFLIMV: "#000000" # hydrophobic: black
+
+# The built-in sets, copied here as starting points for variants: copy a
+# block, give it a new name, and change the colours. While these keep the
+# built-in names, editing them here changes the built-ins.
+
+charge:
+  KRH: "#48869F"         # positive
+  DE:  "#C06F76"             # negative
+  GSTYCNQPAWFLIMV: "#B8B8C1"  # uncharged
+
+hydro:
+  RKDENQ: "#48869F"        # hydrophilic
+  SGHTAP: "#B8B8C1"           # neutral
+  YVMCLFIW: "#C06F76"         # hydrophobic
+
+hydrophobicity:
+  RKDENQ: "#48869F"        # hydrophilic
+  SGHTAP: "#B8B8C1"           # neutral
+  YVMCLFIW: "#C06F76"         # hydrophobic
+
+chem:
+  GSTY: "#D19D69"    # polar: 
+  NQ: "#9F92A5"       # neutral: 
+  KRH: "#48869F"      # basic: 
+  DE: "#679E73"       # acidic: 
+  PAWFLIV: "#C06F76" # hydrophobic: 
+  CM:  "#E2CA3D"   # sulfur      (RasMol #E6E600 yellow)
+ 
+
+chemistry:
+  GSTY: "#D19D69"    # polar: 
+  NQ: "#9F92A5"       # neutral: 
+  KRH: "#48869F"      # basic: 
+  DE: "#679E73"       # acidic: 
+  PAWFLIV: "#C06F76" # hydrophobic: 
+  CM:  "#E2CA3D"   # sulfur      (RasMol #E6E600 yellow)
+
+# RasMol "amino" residue groups, recoloured (original RasMol colour in the comment).
+rasmol:
+  DE:  "#D35353"   # acidic      (RasMol #E60A0A bright red)
+  KR:  "#5680D6"   # basic       (RasMol #145AFF blue)
+  H:   "#8282D2"   # histidine   (RasMol #8282D2 pale blue, unchanged)
+  NQ:  "#57BCB9"   # amide       (RasMol #00DCDC cyan)
+  LVI: "#649B64"   # aliphatic   (RasMol #0F820F green)
+  FY:  "#434389"   # aromatic    (RasMol #3232AA mid blue)
+  CM:  "#E2CA3D"   # sulfur      (RasMol #E6E600 yellow)
+  ST:  "#EAA244"   # hydroxyl    (RasMol #FA9600 orange)
+  G:   "#B5B5B5"   # glycine     (RasMol #EBEBEB light grey)
+  A:   "#A5A5A5"   # alanine     (RasMol #C8C8C8 dark grey)
+  P:   "#DC9682"   # proline     (RasMol #DC9682 flesh, unchanged)
+  W:   "#B45AB4"   # tryptophan  (RasMol #B45AB4 pink; not in the edited sample)
