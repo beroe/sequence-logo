@@ -501,6 +501,16 @@ class GlyphSet:
             self._cache[ch] = (tp, tp.get_extents())
         return self._cache[ch]
 
+    def is_bar(self, ch: str) -> bool:
+        """True if the glyph is a plain rectangle, like a sans-serif I."""
+        tp, bb = self.path(ch)
+        polys = tp.to_polygons()
+        if len(polys) != 1 or bb.width * bb.height == 0:
+            return False
+        x, y = polys[0][:, 0], polys[0][:, 1]
+        area = abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))) / 2
+        return area / (bb.width * bb.height) > 0.95
+
 
 STYLES_FILE = Path(__file__).resolve().parent / "seqlogo_styles.yaml"
 DEFAULT_COLORS = "chem"
@@ -662,12 +672,18 @@ def use_text_font():
         return
 
 
+# A sans-serif I is a bare bar; stretched to the full column it becomes a block.
+BAR_I_WIDTH = 1 / 3   # fraction of the column it fills instead
+
+
 def draw_glyph(ax, glyphs: GlyphSet, ch, x, y, w, h, color):
     if h <= 0:
         return
     path, bb = glyphs.path(ch)
     if bb.width == 0 or bb.height == 0:
         return
+    if ch == "I" and w > BAR_I_WIDTH and glyphs.is_bar(ch):
+        x, w = x + (w - BAR_I_WIDTH) / 2, BAR_I_WIDTH
     t = (Affine2D().translate(-bb.x0, -bb.y0)
          .scale(w / bb.width, h / bb.height).translate(x, y))
     ax.add_patch(PathPatch(t.transform_path(path), facecolor=color,
@@ -679,6 +695,7 @@ def draw_logo_rows(fig, gs_rows, heights, glyphs, colors, args, ymax, label=None
     start = args.first_index
     per_line = args.per_line
     n_rows = math.ceil(length / per_line)
+    gap = args.gap * ymax
     axes = []
     for r in range(n_rows):
         ax = fig.add_subplot(gs_rows[r])
@@ -691,8 +708,9 @@ def draw_logo_rows(fig, gs_rows, heights, glyphs, colors, args, ymax, label=None
                 if h <= args.min_height:
                     continue
                 aa = AMINO_ACIDS[k]
+                # Letters give up a sliver at the top so stacked ones don't touch.
                 draw_glyph(ax, glyphs, aa, j + (1 - args.glyph_width) / 2, y,
-                           args.glyph_width, h, colors[aa])
+                           args.glyph_width, h - gap, colors[aa])
                 y += h
         ax.set_xlim(lo, lo + min(per_line, length))
         ax.set_ylim(0, ymax)
@@ -905,6 +923,8 @@ def main(argv=None):
     ap.add_argument("--height", type=float, default=1.8, help="inches per logo line")
     ap.add_argument("--glyph-width", type=float, default=0.9,
                     help="fraction of column filled by a glyph")
+    ap.add_argument("--gap", type=float, default=0.006,
+                    help="space between stacked letters, as a fraction of the y-axis height; 0 for none")
     ap.add_argument("--min-height", type=float, default=0.0,
                     help="skip glyphs shorter than this (in y units)")
     ap.add_argument("--ymax", type=float, help="y-axis max [log2(20) = 4.32 for bits, 1 for probability]")

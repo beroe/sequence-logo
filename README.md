@@ -62,6 +62,7 @@ Run `./seqlogo.py --help` for the full list.
 | `--no-correction` | turn off the small-sample correction |
 | `--scale-by-occupancy` | shrink stacks in gappy columns |
 | `--start N --end M` | show part of the alignment |
+| `--gap 0.006` | space between stacked letters, as a fraction of the y-axis; `0` for none |
 | `--per-line 40` | stacks per row |
 | `--tick-every 5` | spacing of the position labels |
 | `--show-font`, `--title` | labels |
@@ -69,7 +70,7 @@ Run `./seqlogo.py --help` for the full list.
 ## Notes
 
 - Letters are drawn as vector outlines, so PDF and SVG output never need the font installed.
-- Each letter is stretched to fill its box, so fonts differ mainly in letter shape rather than weight or width.
+- Each letter is stretched to fill its box, so fonts differ mainly in letter shape rather than weight or width. The exception is a plain-bar (sans-serif) I, which fills only a third of the column so it doesn't become a solid block.
 - The typeface "Delirium NCV" available online works well when stretched. Google:Sofia Sans Condensed works well at size 200 and 800.
 - Offline without `-f`, if Oswald isn't cached, the default falls back to Helvetica, Liberation Sans, or DejaVu Sans (Bold).
 - The first run indexes installed fonts (about 10 s); the index and downloads are cached in `~/.cache/seqlogo/`. `examples/make_examples.sh` generates the full set of example logos in `examples/png/` and `examples/pdf/`.
