@@ -16,7 +16,6 @@ examples/png/*
 !examples/png/compare_colors.png
 !examples/png/zf_prob_roboto_condensed.png
 examples/pdf/
-seqlogo-README.pdf
 
 # Scratch output in the top folder
 courier-example*.png
