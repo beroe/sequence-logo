@@ -18,13 +18,13 @@ Python 3.10+ with `numpy` and `matplotlib` (which brings in `fontTools`). `certi
 # pick a font; -o sets the name and format (pdf, svg, png, eps)
 ./seqlogo.py aln.fasta -f "Futura:bold" -o logo.pdf
 
-# compare typefaces on one sheet: repeat -f
+# compare typefaces on one sheet: Repeat the -f field:
 ./seqlogo.py aln.fasta -o compare.pdf \
-    -f "Helvetica Neue:bold" -f "Georgia:bold" -f "google:Inter:900"
+    -f "Helvetica Neue:bold" -f "Georgia:bold" -f "google:Roboto Condensed:700"
 
 # find fonts and their weights: installed, or on Google Fonts
 ./seqlogo.py --list-fonts courier
-./seqlogo.py --list-fonts google:lobster
+./seqlogo.py --list-fonts "Google:sofia sans"
 ```
 
 Input can be FASTA, Clustal, or plain text with one aligned sequence per line (`-` reads from stdin).
@@ -43,6 +43,14 @@ Input can be FASTA, Clustal, or plain text with one aligned sequence per line (`
 
 As in WebLogo, each stack's height is the column's information content in bits, log2(20) − (H + e(n)), where H is the Shannon entropy of the residue frequencies and e(n) is the Schneider et al. (1986) small-sample correction. Letters are sized by frequency and stacked with the most common on top, and gaps are left out of the counts. WebLogo 3 may estimate the correction differently, so heights can differ slightly.
 
+With `-U prob`, every stack is full height and letters show residue frequencies instead of bits:
+
+```bash
+./seqlogo.py examples/zinc_finger.fasta -U prob -f "google:Roboto Condensed:400"
+```
+
+![The zinc-finger alignment as probabilities (`-U prob`) in Roboto Condensed 400.](examples/png/zf_prob_roboto_condensed.png)
+
 ## Useful options
 
 Run `./seqlogo.py --help` for the full list.
@@ -50,7 +58,7 @@ Run `./seqlogo.py --help` for the full list.
 | Option | Effect |
 |---|---|
 | `-c NAME` | color set: built-in or saved (see below); default `chem` |
-| `-U probability` | letter heights as frequencies instead of bits |
+| `-U probability` (or `-U prob`) | letter heights as frequencies instead of bits |
 | `--no-correction` | turn off the small-sample correction |
 | `--scale-by-occupancy` | shrink stacks in gappy columns |
 | `--start N --end M` | show part of the alignment |
@@ -62,7 +70,7 @@ Run `./seqlogo.py --help` for the full list.
 
 - Letters are drawn as vector outlines, so PDF and SVG output never need the font installed.
 - Each letter is stretched to fill its box, so fonts differ mainly in letter shape rather than weight or width.
-- The typeface "Delirium NCV" available online works well when stretched.
+- The typeface "Delirium NCV" available online works well when stretched. Google:Sofia Sans Condensed works well at size 200 and 800.
 - Offline without `-f`, if Oswald isn't cached, the default falls back to Helvetica, Liberation Sans, or DejaVu Sans (Bold).
 - The first run indexes installed fonts (about 10 s); the index and downloads are cached in `~/.cache/seqlogo/`. `examples/make_examples.sh` generates the full set of example logos in `examples/png/` and `examples/pdf/`.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 seqlogo.py - WebLogo-style protein sequence logos with any typeface.
 
 Computes per-column information content the way WebLogo does (bits, with
@@ -847,6 +847,17 @@ def example_usage() -> str:
             f"All options: {script} --help")
 
 
+class DefaultsFormatter(argparse.RawDescriptionHelpFormatter):
+    """Append each option's default as [value] unless its help already gives one."""
+
+    def _get_help_string(self, action):
+        h = action.help or ""
+        d = action.default
+        if "[" not in h and not (d is None or d is False or d == argparse.SUPPRESS):
+            h += " [%(default)s]"
+        return h
+
+
 class HelpfulParser(argparse.ArgumentParser):
     """Command-line errors print a runnable example instead of a usage dump."""
 
@@ -856,30 +867,31 @@ class HelpfulParser(argparse.ArgumentParser):
 
 def main(argv=None):
     ap = HelpfulParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+        description=__doc__, formatter_class=DefaultsFormatter)
     ap.add_argument("alignment", nargs="?", help="FASTA / Clustal / plain alignment ('-' = stdin)")
     ap.add_argument("-o", "--output",
-                    help="output file; format from extension (pdf, svg, png, eps). "
-                         "Default: <alignment>-<font>-<colours>.png, "
-                         "e.g. zinc_finger-oswald700-chem.png")
+                    help="output file; format from extension (pdf, svg, png, eps) "
+                         "[<alignment>-<font>-<colours>.png, "
+                         "e.g. zinc_finger-oswald700-chem.png]")
     ap.add_argument("-f", "--font", action="append", dest="fonts",
-                    help="font spec; repeat to compare typefaces (default google:Oswald:700, "
-                         "or a local fallback if it can't be downloaded)")
+                    help="font spec; repeat to compare typefaces [google:Oswald:700, "
+                         "or a local fallback if it can't be downloaded]")
     ap.add_argument("--list-fonts", "--listfonts", nargs="?", const="", metavar="FILTER",
                     help="list installed font families (optionally filtered) and exit; "
                          "a filter starting google: searches Google Fonts instead")
     ap.add_argument("-c", "--colors", action="append", metavar="NAME",
                     help="colour set: built-in (chem, hydro, charge, rasmol, okabe_ito, mono) "
-                         "or one saved in the styles file (default chem); "
-                         "repeat to compare")
+                         "or one saved in the styles file; repeat to compare [chem]")
     ap.add_argument("-s", "--styles", default=str(STYLES_FILE), metavar="FILE",
                     help="YAML file of saved colour sets "
-                         "(default seqlogo_styles.yaml next to this script)")
+                         "[seqlogo_styles.yaml next to this script]")
     ap.add_argument("--list-styles", action="store_true",
                     help="list available colour sets and exit")
     ap.add_argument("--swatches", metavar="OUT",
                     help="write a sheet comparing every colour set's swatches and exit")
-    ap.add_argument("-U", "--units", choices=["bits", "probability"], default="bits")
+    ap.add_argument("-U", "--units", choices=["bits", "probability"], default="bits",
+                    type=lambda u: "probability" if u.lower() == "prob" else u.lower(),
+                    help="stack heights in bits or as probabilities (prob for short)")
     ap.add_argument("--no-correction", action="store_true",
                     help="disable small-sample correction")
     ap.add_argument("--scale-by-occupancy", action="store_true",
@@ -895,12 +907,12 @@ def main(argv=None):
                     help="fraction of column filled by a glyph")
     ap.add_argument("--min-height", type=float, default=0.0,
                     help="skip glyphs shorter than this (in y units)")
-    ap.add_argument("--ymax", type=float, help="y-axis max (default log2(20) bits)")
+    ap.add_argument("--ymax", type=float, help="y-axis max [log2(20) = 4.32 for bits, 1 for probability]")
     ap.add_argument("--columns", type=int, default=1,
                     help="arrange comparison panels in this many columns")
-    ap.add_argument("--title")
+    ap.add_argument("--title", help="title above the logo")
     ap.add_argument("--show-font", action="store_true", help="label logo with font name")
-    ap.add_argument("--dpi", type=int, default=300)
+    ap.add_argument("--dpi", type=int, default=300, help="resolution for PNG output")
     args = ap.parse_args(argv)
 
     if args.list_fonts is not None:

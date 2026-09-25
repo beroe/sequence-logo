@@ -14,6 +14,7 @@ examples/png/*
 !examples/png/zf_oswald.png
 !examples/png/swatches.png
 !examples/png/compare_colors.png
+!examples/png/zf_prob_roboto_condensed.png
 examples/pdf/
 seqlogo-README.pdf
 

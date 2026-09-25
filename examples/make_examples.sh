@@ -22,6 +22,10 @@ for f in "Helvetica Neue:bold" "Futura:bold" "Avenir Next Condensed:heavy" \
   $L $A -o "$P/zf_$(slug "$f").png" --tick-every 1 --dpi 200 --show-font -f "$f"
 done
 
+# Probability units (README example)
+$L $A -o "$P/zf_prob_roboto_condensed.png" --tick-every 1 --dpi 200 --show-font \
+  -U prob -f "google:Roboto Condensed:400"
+
 # Monaspace families in SemiWide and Wide, Bold and ExtraBold
 for fam in Neon Argon Xenon Radon Krypton; do
   for w in SemiWide Wide; do
@@ -45,6 +49,11 @@ for fam in Neon Argon Xenon Radon Krypton; do
   monaspace+=(-f "Monaspace $fam:700" -f "Monaspace $fam:800")
 done
 $L $A -o $P/compare_monaspace.png --tick-every 1 --dpi 150 "${monaspace[@]}"
+sofia=()
+for w in 100 200 300 400 500 600 700 800; do
+  sofia+=(-f "google:Sofia Sans Condensed:$w" -f "google:Sofia Sans Extra Condensed:$w")
+done
+$L $A -o $P/compare_sofia.png --tick-every 1 --dpi 150 --columns 2 "${sofia[@]}"
 
 # Colour sets
 $L $A -o $P/zf_okabe_ito.png --tick-every 1 --dpi 200 -c okabe_ito
