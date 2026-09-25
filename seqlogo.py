@@ -23,6 +23,7 @@ Examples
 
   # find installed families
   ./seqlogo.py --list-fonts avenir
+  ./seqlogo.py --list-fonts google:lobster
 
 Font spec syntax:  "Family[:weight][:italic]"  |  "google:Family[:weight]"  |  path/to/font.ttf|.otf
 Weights: 100-900 or thin, light, regular, medium, semibold, bold, heavy, black.
@@ -366,8 +367,8 @@ class GoogleFontError(Exception):
     pass
 
 
-def fetch_google_font(family: str, weight: int) -> Path:
-    FONT_CACHE.mkdir(parents=True, exist_ok=True)
+def _fetch_google_weight(family: str, weight: int) -> Path | None:
+    """Download one weight of a Google Font; None if Google doesn't offer it."""
     dest = FONT_CACHE / f"google-{family.replace(' ', '_')}-{weight}.ttf"
     if dest.exists():
         return dest
@@ -375,10 +376,8 @@ def fetch_google_font(family: str, weight: int) -> Path:
            f"{urllib.parse.quote_plus(family)}:wght@{weight}")
     try:
         css = _urlopen(url, 20).read().decode()
-    except urllib.error.HTTPError as e:
-        raise GoogleFontError(f"Google Fonts has no '{family}' at weight {weight} "
-                              f"(HTTP {e.code}); check the name and weights at "
-                              "fonts.google.com")
+    except urllib.error.HTTPError:
+        return None   # Google answers 400 for an unknown family or weight
     except Exception as e:
         raise GoogleFontError(f"could not reach Google Fonts: {e}")
     m = re.search(r"url\((https://[^)]+)\)", css)
@@ -393,6 +392,80 @@ def fetch_google_font(family: str, weight: int) -> Path:
     return dest
 
 
+GOOGLE_INDEX = FONT_CACHE.parent / "google_fonts.json"
+GOOGLE_INDEX_MAX_AGE = 30 * 86400   # refresh the catalogue monthly
+
+
+def google_catalogue() -> dict[str, dict]:
+    """{family: {"weights": [...], "italic": bool, "wrange": [lo, hi] | None}}.
+
+    Built from fonts.google.com/metadata/fonts (the list behind the Google Fonts
+    website; undocumented, so it could change) and cached for a month.
+    """
+    import json
+    import time
+    if GOOGLE_INDEX.exists() and time.time() - GOOGLE_INDEX.stat().st_mtime < GOOGLE_INDEX_MAX_AGE:
+        return json.loads(GOOGLE_INDEX.read_text())
+    try:
+        raw = _urlopen("https://fonts.google.com/metadata/fonts", 60).read()
+        fams = json.loads(raw)["familyMetadataList"]
+    except Exception as e:
+        if GOOGLE_INDEX.exists():   # stale is better than nothing
+            return json.loads(GOOGLE_INDEX.read_text())
+        raise GoogleFontError(f"could not get the Google Fonts list: {e}")
+    cat = {}
+    for f in fams:
+        keys = f.get("fonts", {})
+        wght = next((ax for ax in f.get("axes", []) if ax["tag"] == "wght"), None)
+        cat[f["family"]] = {
+            "weights": sorted({int(k.rstrip("i")) for k in keys}),
+            "italic": any(k.endswith("i") for k in keys),
+            "wrange": [int(wght["min"]), int(wght["max"])] if wght else None,
+        }
+    GOOGLE_INDEX.parent.mkdir(parents=True, exist_ok=True)
+    GOOGLE_INDEX.write_text(json.dumps(cat))
+    return cat
+
+
+def _nearest_google_weight(info: dict, weight: int) -> int:
+    if info["wrange"]:
+        lo, hi = info["wrange"]
+        return min(max(weight, lo), hi)
+    return min(info["weights"], key=lambda w: (abs(w - weight), w))
+
+
+def fetch_google_font(family: str, weight: int) -> tuple[Path, str, int]:
+    """Return (font file, family name, weight used), using the nearest weight if the one asked for is missing."""
+    FONT_CACHE.mkdir(parents=True, exist_ok=True)
+    path = _fetch_google_weight(family, weight)
+    if path:
+        return path, family, weight
+    # Not offered as asked: look the family up to correct its capitalisation and
+    # find the nearest weight; without the catalogue, just try 400.
+    try:
+        cat = google_catalogue()
+    except GoogleFontError:
+        cat = None
+    if cat is None:
+        name, w = family, 400
+    else:
+        name = next((n for n in cat if n.lower() == family.lower()), None)
+        if name is None:
+            import difflib
+            close = difflib.get_close_matches(family, list(cat), n=3, cutoff=0.6)
+            hint = (f"Did you mean: {', '.join(close)}?" if close else
+                    f"Search with --list-fonts \"google:{family.split()[0][:4]}\"")
+            raise GoogleFontError(f"Google Fonts has no family '{family}'. {hint}")
+        w = _nearest_google_weight(cat[name], weight)
+    path = _fetch_google_weight(name, w) if (name, w) != (family, weight) else None
+    if path is None:
+        raise GoogleFontError(f"Google Fonts has no '{family}' at weight {weight}; "
+                              "check the name and weights at fonts.google.com")
+    if w != weight:
+        print(f"note: Google Font '{name}' has no weight {weight}; using {w}", file=sys.stderr)
+    return path, name, w
+
+
 def resolve_font(spec: str) -> tuple[Path, str]:
     """Return (font file, display label) for a font spec."""
     p = Path(spec).expanduser()
@@ -401,7 +474,8 @@ def resolve_font(spec: str) -> tuple[Path, str]:
     if spec.lower().startswith("google:"):
         _, family, *rest = spec.split(":")
         weight = parse_weight(rest[0] if rest else None)
-        return fetch_google_font(family.strip(), weight), f"{family.strip()} {weight} (Google)"
+        path, name, used = fetch_google_font(family.strip(), weight)
+        return path, f"{name} {used} (Google)"
     family, *rest = [part.strip() for part in spec.split(":")]
     italic = "italic" in (r.lower() for r in rest)
     rest = [r for r in rest if r.lower() != "italic"]
@@ -722,7 +796,26 @@ def render(seqs, font_specs, args):
 # CLI
 # --------------------------------------------------------------------------
 
+def list_google_fonts(filt: str):
+    cat = google_catalogue()
+    names = sorted((n for n in cat if filt.lower() in n.lower()), key=str.lower)
+    for name in names:
+        info = cat[name]
+        ws = ", ".join(map(str, info["weights"]))
+        extra = "".join([f"  (variable {info['wrange'][0]}-{info['wrange'][1]})"
+                         if info["wrange"] else "", "  +italic" if info["italic"] else ""])
+        print(f"google:{name:33s} {ws}{extra}")
+    if not names:
+        print(f"No Google Fonts match '{filt}'." if filt else "No Google Fonts found.",
+              file=sys.stderr)
+
+
 def list_fonts(filt: str | None):
+    if filt and filt.lower().startswith("google:"):
+        try:
+            return list_google_fonts(filt.split(":", 1)[1].strip())
+        except GoogleFontError as e:
+            sys.exit(f"error: {e}")
     fams: dict[str, set[str]] = {}
     for f in font_index():
         for name in f["names"]:
@@ -734,7 +827,9 @@ def list_fonts(filt: str | None):
     key = lambda w: int(w.split("-")[0].rstrip("i").split()[0])
     for name in sorted(fams, key=str.lower):
         print(f"{name:40s} {', '.join(sorted(fams[name], key=key))}")
-    print("\n(weights ending in 'i' are italic)", file=sys.stderr)
+    if not fams:
+        print(f"No installed fonts match '{filt}'." if filt else "No installed fonts found.",
+              file=sys.stderr)
 
 
 def example_usage() -> str:
@@ -771,7 +866,8 @@ def main(argv=None):
                     help="font spec; repeat to compare typefaces (default google:Oswald:700, "
                          "or a local fallback if it can't be downloaded)")
     ap.add_argument("--list-fonts", "--listfonts", nargs="?", const="", metavar="FILTER",
-                    help="list installed font families (optionally filtered) and exit")
+                    help="list installed font families (optionally filtered) and exit; "
+                         "a filter starting google: searches Google Fonts instead")
     ap.add_argument("-c", "--colors", action="append", metavar="NAME",
                     help="colour set: built-in (chem, hydro, charge, rasmol, okabe_ito, mono) "
                          "or one saved in the styles file (default chem); "

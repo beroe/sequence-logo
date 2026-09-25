@@ -22,8 +22,9 @@ Python 3.10+ with `numpy` and `matplotlib` (which brings in `fontTools`). `certi
 ./seqlogo.py aln.fasta -o compare.pdf \
     -f "Helvetica Neue:bold" -f "Georgia:bold" -f "google:Inter:900"
 
-# find installed fonts and their weights
+# find fonts and their weights: installed, or on Google Fonts
 ./seqlogo.py --list-fonts courier
+./seqlogo.py --list-fonts google:lobster
 ```
 
 Input can be FASTA, Clustal, or plain text with one aligned sequence per line (`-` reads from stdin).
@@ -36,7 +37,7 @@ Input can be FASTA, Clustal, or plain text with one aligned sequence per line (`
 | `"Family:600"` / `"Family:heavy"` | a weight, 100–900 or a name (light, medium, semibold, bold, extrabold, heavy/black); nearest available is used |
 | `"Family:bold:italic"` | italic face |
 | `path/to/font.otf` | any `.ttf`, `.otf`, or `.ttc` file |
-| `"google:Family:weight"` | downloads from Google Fonts once and caches it |
+| `"google:Family:weight"` | downloads from Google Fonts once and caches it; nearest available weight is used |
 
 ## What the logo shows
 
@@ -61,6 +62,7 @@ Run `./seqlogo.py --help` for the full list.
 
 - Letters are drawn as vector outlines, so PDF and SVG output never need the font installed.
 - Each letter is stretched to fill its box, so fonts differ mainly in letter shape rather than weight or width.
+- The typeface "Delirium NCV" available online works well when stretched.
 - Offline without `-f`, if Oswald isn't cached, the default falls back to Helvetica, Liberation Sans, or DejaVu Sans (Bold).
 - The first run indexes installed fonts (about 10 s); the index and downloads are cached in `~/.cache/seqlogo/`. `examples/make_examples.sh` generates the full set of example logos in `examples/png/` and `examples/pdf/`.
 
