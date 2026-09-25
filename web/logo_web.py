@@ -90,7 +90,8 @@ def check_alignment(text: str) -> list[str]:
 
 
 def make_logo(text, font_file, colors, fmt, units, correction, gap,
-              tick_every, per_line, show_font, dpi, max_columns=0, background="white"):
+              tick_every, per_line, show_font, dpi, max_columns=0, background="white",
+              letter_height=1.0):
     """Return {"data": bytes, "notes": str} or {"error": str}.
     max_columns > 0 draws only the first that many positions (for previews)."""
     try:
@@ -112,7 +113,8 @@ def make_logo(text, font_file, colors, fmt, units, correction, gap,
         argv = [str(WORK / "alignment.txt"), "-o", str(out), "-f", font_file,
                 "-c", colors, "-U", units, "--gap", str(gap),
                 "--tick-every", str(tick_every), "--per-line", str(per_line),
-                "--dpi", str(dpi), "--background", background]
+                "--dpi", str(dpi), "--background", background,
+                "--letter-height", str(float(letter_height))]
         if not correction:
             argv.append("--no-correction")
         length = len(seqs[0])

@@ -92,6 +92,7 @@ Run `./seqlogo.py --help` for the full list.
 | `--scale-by-occupancy` | shrink stacks in gappy columns |
 | `--start N --end M` | show part of the alignment |
 | `--background black` | black background with white axes and text; black letters are drawn white |
+| `--letter-height 75%` | shorter letters (and logo); `0.75` also works; default 100% |
 | `--gap 0.006` | space between stacked letters, as a fraction of the y-axis; `0` for none |
 | `--per-line 40` | stacks per row |
 | `--tick-every 5` | spacing of the position labels |

@@ -789,7 +789,7 @@ def render(seqs, font_specs, args):
     length = heights.shape[0]
     n_rows = math.ceil(length / args.per_line)
     cols = min(length, args.per_line)
-    row_h = args.height
+    row_h = args.height * args.letter_height
     grid_cols = max(1, min(args.columns, len(panels)))
     grid_rows = math.ceil(len(panels) / grid_cols)
     width = max(4.0, cols * args.column_width + 1.0) * grid_cols
@@ -888,6 +888,18 @@ def example_usage() -> str:
             f"All options: {script} --help")
 
 
+def fraction(text: str) -> float:
+    """0.75 or 75% -> 0.75, for --letter-height."""
+    t = text.strip()
+    try:
+        value = float(t[:-1]) / 100 if t.endswith("%") else float(t)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"'{text}' is not a number like 0.75 or 75%")
+    if not 0.1 <= value <= 3:
+        raise argparse.ArgumentTypeError(f"{text} is outside 0.1-3 (10%-300%)")
+    return value
+
+
 class DefaultsFormatter(argparse.RawDescriptionHelpFormatter):
     """Append each option's default as [value] unless its help already gives one."""
 
@@ -944,6 +956,9 @@ def main(argv=None):
     ap.add_argument("--tick-every", type=int, default=5, help="x-axis label spacing")
     ap.add_argument("--column-width", type=float, default=0.28, help="inches per stack")
     ap.add_argument("--height", type=float, default=1.8, help="inches per logo line")
+    ap.add_argument("--letter-height", type=fraction, default=1.0, metavar="FRACTION",
+                    help="scale letter heights, and so the logo's height, e.g. 0.75 or 75%%; "
+                         "widths and values are unchanged")
     ap.add_argument("--glyph-width", type=float, default=0.9,
                     help="fraction of column filled by a glyph")
     ap.add_argument("--background", choices=["white", "black"], default="white",

@@ -102,6 +102,7 @@ function settings(format, dpi, maxColumns = 0) {
     background: choice("background"),
     units: choice("units"),
     gap: Number(choice("gap")),
+    letterHeight: Number(choice("letterheight")),
     tick: Number(choice("tick")),
     perLine: Number(choice("perline")),
     correction: $("correction").checked,
@@ -113,7 +114,7 @@ function settings(format, dpi, maxColumns = 0) {
 function draw(s) {
   const result = makeLogo(
     $("alignment").value, s.font.path, s.colors, s.format, s.units,
-    s.correction, s.gap, s.tick, s.perLine, s.showFont, s.dpi, s.maxColumns, s.background);
+    s.correction, s.gap, s.tick, s.perLine, s.showFont, s.dpi, s.maxColumns, s.background, s.letterHeight);
   const out = result.toJs({ dict_converter: Object.fromEntries });
   result.destroy();
   return out;
