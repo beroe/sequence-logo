@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Everything runs locally: Python (Pyodide) comes from jsDelivr, the rest from this site. -->
 <meta http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; connect-src 'self' https://cdn.jsdelivr.net; img-src 'self' blob:; style-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; connect-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' blob:; style-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Sequence logo maker: protein sequence logos in your choice of typeface</title>
 <meta name="description" content="Make WebLogo-style protein sequence logos from a FASTA or Clustal alignment, with a choice of typefaces and color schemes. Runs entirely in your browser; your alignment is never uploaded.">
 <link rel="stylesheet" href="style.css">
@@ -54,6 +54,17 @@
   <section class="options">
     <fieldset id="fonts">
       <legend>Typeface</legend>
+      <div id="font-presets"></div>
+      <label class="choice google">
+        <input type="radio" name="font" value="google">
+        <input type="text" id="gfont" list="gfont-list" placeholder="Any Google font"
+               autocomplete="off" spellcheck="false" maxlength="70" aria-label="Google font name">
+        <select id="gweight" aria-label="Weight" disabled></select>
+        <span class="sample" id="gsample"></span>
+      </label>
+      <datalist id="gfont-list"></datalist>
+      <p class="hint google-hint">Fonts typed here are downloaded from
+        <a href="https://fonts.google.com">Google Fonts</a> by your browser.</p>
     </fieldset>
 
     <fieldset id="colors">

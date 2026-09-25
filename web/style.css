@@ -4,7 +4,7 @@
 @font-face { font-family: "Roboto Condensed 700"; src: url(fonts/RobotoCondensed-700.ttf); }
 @font-face { font-family: "Inter 900"; src: url(fonts/Inter-900.ttf); }
 @font-face { font-family: "Roboto Slab 800"; src: url(fonts/RobotoSlab-800.ttf); }
-@font-face { font-family: "IBM Plex Mono 700"; src: url(fonts/IBMPlexMono-700.ttf); }
+@font-face { font-family: "Bebas Neue 400"; src: url(fonts/BebasNeue-400.ttf); }
 
 :root {
   --bg: #fff;
@@ -99,7 +99,20 @@ fieldset > label, .row label { margin-right: .9rem; white-space: nowrap; }
 .row { margin: .15rem 0; }
 .rowname { display: inline-block; min-width: 9.5rem; color: var(--muted); }
 
-#fonts, #colors { display: grid; gap: .15rem; }
+#fonts, #colors, #font-presets { display: grid; gap: .15rem; }
+.google { flex-wrap: wrap; margin-top: .3rem; }
+#gfont {
+  font: inherit;
+  width: 9rem;
+  padding: .2rem .4rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--field);
+}
+#gweight { font: inherit; color: var(--ink); background: var(--field); border: 1px solid var(--line); border-radius: 6px; }
+#gsample { min-width: 0; }
+.google-hint { margin: .15rem 0 0; }
 .choice { display: flex; align-items: center; gap: .6rem; }
 .sample { font-size: 1.5rem; line-height: 1.1; min-width: 7.5rem; flex: none; letter-spacing: .02em; }
 .name { color: var(--muted); font-size: .9rem; }

@@ -31,7 +31,7 @@ Input can be FASTA, Clustal, or plain text with one aligned sequence per line (`
 
 ## Web version
 
-`web/` is a browser version with a fixed set of seven typefaces, the built-in color sets, and PNG, SVG or PDF downloads. It runs `seqlogo.py` in the page with [Pyodide](https://pyodide.org), so alignments never leave the visitor's computer and no server is needed; GitHub Pages can host it. To try it locally, run `python3 -m http.server 8000 --bind 127.0.0.1` in the repo folder and open <http://127.0.0.1:8000/web/>. The bundled fonts are from Google Fonts under their own licenses (`web/fonts/*.LICENSE.txt`); `web/make_wordmarks.py` redraws the page's wordmarks.
+`web/` is a browser version with seven bundled typefaces plus a box for any Google Fonts family (downloaded by the visitor's browser), the built-in color sets, and PNG, SVG or PDF downloads. It runs `seqlogo.py` in the page with [Pyodide](https://pyodide.org), so alignments never leave the visitor's computer and no server is needed; GitHub Pages can host it. To try it locally, run `python3 -m http.server 8000 --bind 127.0.0.1` in the repo folder and open <http://127.0.0.1:8000/web/>. The bundled fonts are from Google Fonts under their own licenses (`web/fonts/*.LICENSE.txt`); `web/make_wordmarks.py` redraws the page's wordmarks, and `web/make_google_fonts_list.py` refreshes the list of Google families and weights the box accepts (`web/google_fonts.json`).
 
 ## Font specs
 

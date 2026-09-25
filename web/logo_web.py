@@ -37,6 +37,31 @@ def color_sets() -> dict:
             for name in seqlogo.COLOR_SCHEMES}
 
 
+GOOGLE_DIR = Path("/fonts/google")
+FAMILY_NAME = re.compile(r"[A-Za-z0-9 ]{1,60}")
+
+
+def install_google_font(data, family: str, weight: int) -> str:
+    """Save a Google Fonts download (woff2, maybe variable) as a static TTF
+    matplotlib can read, and return its path."""
+    from fontTools.ttLib import TTFont
+    if not FAMILY_NAME.fullmatch(family) or not 1 <= int(weight) <= 1000:
+        raise ValueError(f"bad font name {family!r} {weight!r}")
+    font = TTFont(io.BytesIO(bytes(data)))
+    font.flavor = None                      # woff2 -> plain TrueType/CFF
+    if "fvar" in font:
+        from fontTools.varLib import instancer
+        axes = {a.axisTag: a for a in font["fvar"].axes}
+        location = {tag: a.defaultValue for tag, a in axes.items()}
+        if "wght" in axes:
+            location["wght"] = min(max(weight, axes["wght"].minValue), axes["wght"].maxValue)
+        font = instancer.instantiateVariableFont(font, location)
+    GOOGLE_DIR.mkdir(parents=True, exist_ok=True)
+    path = GOOGLE_DIR / f"{family} {weight}.ttf"
+    font.save(str(path))
+    return str(path)
+
+
 def check_alignment(text: str) -> list[str]:
     if not text.strip():
         raise InputError("Paste an alignment first.")
