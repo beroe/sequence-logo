@@ -2,11 +2,36 @@
 
 `seqlogo.py` draws WebLogo-style protein sequence logos in any typeface: fonts installed on your Mac (including every face inside `.ttc` collections and any weight of a variable font), a font file on disk, or a Google Font.
 
+**Try it in your browser, no installation needed: <https://beroe.github.io/sequence-logo/web/>**
+
 ![C2H2 zinc-finger logo (`examples/zinc_finger.fasta`) in the default font, Oswald 700, and default colors, `chem`.](examples/png/zf_oswald.png)
 
-## Requirements
+## Installation
 
-Python 3.10+ with `numpy` and `matplotlib` (which brings in `fontTools`). `certifi` is used for Google Fonts downloads if present, and `PyYAML` for saved color sets.
+You need Python 3.10 or later with `numpy` and `matplotlib` (which brings in `fontTools`):
+
+```bash
+python3 -m pip install numpy matplotlib
+```
+
+The only file you need is `seqlogo.py`. Everything else is optional:
+
+| File | What it adds |
+|---|---|
+| `seqlogo.py` | the program, with all the built-in color sets (required) |
+| `seqlogo_styles.yaml` | saved color sets you can edit; keep it in the same folder as `seqlogo.py`, and install PyYAML (`python3 -m pip install pyyaml`) to use it |
+| `examples/zinc_finger.fasta` | the sample alignment used in this README |
+
+To download just the program:
+
+```bash
+curl -O https://raw.githubusercontent.com/beroe/sequence-logo/main/seqlogo.py
+chmod +x seqlogo.py
+```
+
+or clone the whole repository with `git clone https://github.com/beroe/sequence-logo.git`.
+
+If a Google Font download stops with an SSL certificate error, which can happen with some Python installs on macOS, install `certifi` (`python3 -m pip install certifi`); `seqlogo.py` uses it automatically when present.
 
 ## Quick start
 
