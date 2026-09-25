@@ -4,9 +4,9 @@
 
 const FONTS = [
   { file: "Oswald-700.ttf", name: "Oswald 700" },
+  { file: "Antonio-700.ttf", name: "Antonio 700" },
   { file: "SofiaSansCondensed-800.ttf", name: "Sofia Sans Condensed 800" },
   { file: "RobotoCondensed-400.ttf", name: "Roboto Condensed 400" },
-  { file: "RobotoCondensed-700.ttf", name: "Roboto Condensed 700" },
   { file: "Inter-900.ttf", name: "Inter 900" },
   { file: "RobotoSlab-800.ttf", name: "Roboto Slab 800" },
   { file: "BebasNeue-400.ttf", name: "Bebas Neue 400" },
@@ -411,6 +411,7 @@ async function start() {
   await installFont(FONTS[0], firstFont);
   pyodide.runPython("import sys; sys.path.insert(0, '/app')");
   web = pyodide.pyimport("logo_web");
+  $("version").textContent = ` ${pyodide.runPython("import seqlogo; seqlogo.__version__")}`;
   setUpGoogleFonts();
   googleListReady = loadGoogleList();   // not waited for
   makeLogo = web.make_logo;

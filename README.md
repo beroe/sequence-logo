@@ -67,6 +67,7 @@ Input can be FASTA, Clustal, or plain text with one aligned sequence per line (`
 | `"Family:bold:italic"` | italic face |
 | `path/to/font.otf` | any `.ttf`, `.otf`, or `.ttc` file |
 | `"google:Family:weight"` | downloads from Google Fonts once and caches it; nearest available weight is used |
+| `"builtin:Antonio"` | Antonio Bold, built into `seqlogo.py`: works offline with nothing installed |
 
 ## What the logo shows
 
@@ -82,7 +83,7 @@ With `-U prob`, every stack is full height and letters show residue frequencies 
 
 ## Useful options
 
-Run `./seqlogo.py --help` for the full list.
+Run `./seqlogo.py --help` for the full list, and `./seqlogo.py --version` to see which version you have.
 
 | Option | Effect |
 |---|---|
@@ -102,8 +103,8 @@ Run `./seqlogo.py --help` for the full list.
 
 - Letters are drawn as vector outlines, so PDF and SVG output never need the font installed.
 - Each letter is stretched to fill its box, so fonts differ mainly in letter shape rather than weight or width. The exception is a plain-bar (sans-serif) I, which fills only a third of the column so it doesn't become a solid block.
-- The typeface "Delirium NCV" available online works well when stretched. Google:Sofia Sans Condensed works well at size 200 and 800.
-- Offline without `-f`, if Oswald isn't cached, the default falls back to Helvetica, Liberation Sans, or DejaVu Sans (Bold).
+- Condensed faces suit the tall, narrow letter boxes. Good choices: Antonio 700 (`builtin:Antonio`, or `google:Antonio:700`), `google:Sofia Sans Condensed` at 200 or 800, and the typeface "Delirium NCV", available online.
+- Offline without `-f`, if Oswald isn't cached, the default falls back to the built-in Antonio 700.
 - The first run indexes installed fonts (about 10 s); the index and downloads are cached in `~/.cache/seqlogo/`. `examples/make_examples.sh` generates the full set of example logos in `examples/png/` and `examples/pdf/`.
 
 <div style="break-before: page"></div>
@@ -147,6 +148,7 @@ Each key under a set is a group of one-letter residue codes (one letter is fine)
 - **WebLogo**, whose output and defaults this tool follows: Crooks, G. E., Hon, G., Chandonia, J.-M. & Brenner, S. E. (2004). WebLogo: a sequence logo generator. *Genome Research* 14, 1188–1190. Source: <https://github.com/gecrooks/weblogo>.
 - **Residue groups** of the built-in `hydro`, `charge`, and `chem` sets follow WebLogo 3's hydrophobicity, charge, and chemistry schemes (`chem` adds a separate sulfur group for C and M) in `weblogo/colorscheme.py`, Copyright © 2003–2005 The Regents of the University of California and © 2005 Gavin E. Crooks, distributed under the MIT License (notice in `LICENSE-weblogo.txt`). The colors are new.
 - **RasMol** residue groups (`rasmol` set): Sayle, R. A. & Milner-White, E. J. (1995). RASMOL: biomolecular graphics for all. *Trends in Biochemical Sciences* 20, 374. The colors are new.
+- **Antonio** (built into `seqlogo.py`, capital letters only): Copyright 2013 The Antonio Project Authors, <https://github.com/googlefonts/antonioFont>, under the SIL Open Font License 1.1; the licence text is at the end of `seqlogo.py`.
 - **Okabe–Ito palette** (`okabe_ito` example set): Okabe, M. & Ito, K. (2008). *Color Universal Design (CUD): how to make figures and presentations that are friendly to colorblind people.*
 
 Created using Claude Code - Opus 5.5.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 r"""
 seqlogo.py - WebLogo-style protein sequence logos with any typeface.
+Version 1.0.0
 
 Computes per-column information content the way WebLogo does (bits, with
 the Schneider et al. 1986 small-sample correction), stacks residues by
@@ -25,13 +26,17 @@ Examples
   ./seqlogo.py --list-fonts avenir
   ./seqlogo.py --list-fonts google:lobster
 
-Font spec syntax:  "Family[:weight][:italic]"  |  "google:Family[:weight]"  |  path/to/font.ttf|.otf
+Font spec syntax:  "Family[:weight][:italic]"  |  "google:Family[:weight]"  |  "builtin:Antonio"  |
+                   path/to/font.ttf|.otf
 Weights: 100-900 or thin, light, regular, medium, semibold, bold, heavy, black.
 
 Input: FASTA, Clustal (.aln), or plain text with one aligned sequence per line.
 """
 
 from __future__ import annotations
+
+# The version lives in the docstring above (it shows in --help); change it there.
+__version__ = __doc__.split("Version ", 1)[1].split()[0]
 
 import argparse
 import math
@@ -110,9 +115,10 @@ WEIGHT_NAMES = {
 }
 
 DEFAULT_FONT = "google:Oswald:700"
-# Tried in order if the default can't be downloaded. The last is bundled with
-# matplotlib, so it is always available.
-FALLBACK_FONTS = ["Helvetica:bold",          # macOS
+# Tried in order if the default can't be downloaded. The first is built into
+# this script, so it is always available.
+FALLBACK_FONTS = ["builtin:Antonio",         # inside this script
+                  "Helvetica:bold",          # macOS
                   "Liberation Sans:bold",    # most Linux distributions
                   str(Path(matplotlib.get_data_path()) / "fonts/ttf/DejaVuSans-Bold.ttf")]
 FONT_CACHE = Path.home() / ".cache" / "seqlogo" / "fonts"
@@ -466,11 +472,28 @@ def fetch_google_font(family: str, weight: int) -> tuple[Path, str, int]:
     return path, name, w
 
 
+def builtin_font(name: str) -> tuple[Path, str]:
+    """Write a font built into this script to the cache; return (file, label)."""
+    import base64
+    key = name.strip().split(":")[0].lower()
+    if key not in BUILTIN_FONTS:
+        raise FontNotFound(f"no built-in font '{name}'; built in: "
+                           + ", ".join(label for label, _ in BUILTIN_FONTS.values()))
+    label, data = BUILTIN_FONTS[key]
+    path = FONT_CACHE / f"builtin-{label.replace(' ', '_')}.ttf"
+    if not path.exists():
+        FONT_CACHE.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(base64.b64decode("".join(data.split())))
+    return path, f"{label} (built-in)"
+
+
 def resolve_font(spec: str) -> tuple[Path, str]:
     """Return (font file, display label) for a font spec."""
     p = Path(spec).expanduser()
     if p.suffix.lower() in {".ttf", ".otf", ".ttc"} and p.exists():
         return p, p.stem
+    if spec.lower().startswith("builtin:"):
+        return builtin_font(spec.split(":", 1)[1])
     if spec.lower().startswith("google:"):
         _, family, *rest = spec.split(":")
         weight = parse_weight(rest[0] if rest else None)
@@ -753,7 +776,7 @@ def auto_output_name(alignment: str, fonts, color_names) -> str:
     """Default output name: <alignment>-<fonts>-<colour sets>.png, e.g.
     zinc_finger-oswald700-chem.png; several fonts or sets are joined with +."""
     def slug(label: str) -> str:
-        label = label.lower().replace(" (google)", "")
+        label = label.lower().replace(" (google)", "").replace(" (built-in)", "")
         return re.sub(r"[^a-z0-9-]+", "", label)
     seq = "stdin" if alignment == "-" else Path(alignment).stem
     font_part = "+".join(slug(label) for _, label in fonts)
@@ -921,6 +944,7 @@ class HelpfulParser(argparse.ArgumentParser):
 def main(argv=None):
     ap = HelpfulParser(
         description=__doc__, formatter_class=DefaultsFormatter)
+    ap.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     ap.add_argument("alignment", nargs="?", help="FASTA / Clustal / plain alignment ('-' = stdin)")
     ap.add_argument("-o", "--output",
                     help="output file; format from extension (pdf, svg, png, eps) "
@@ -995,6 +1019,170 @@ def main(argv=None):
         if Path(args.alignment).is_dir():
             ap.error(f"'{args.alignment}' is a folder, not an alignment file")
     render(read_alignment(args.alignment), args.fonts, args)
+
+
+# --------------------------------------------------------------------------
+# Built-in font: Antonio Bold (700), capital letters A-Z only, for -f builtin:Antonio
+# and as the first offline fallback. From Google Fonts; licence below.
+# --------------------------------------------------------------------------
+
+BUILTIN_FONTS = {"antonio": ("Antonio 700", """
+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
+AAEECQAFABoBCgADAAEECQAGABgBJAADAAEECQAOADQBPAADAAEECQEAAAwBcAADAAEECQEFAAgA
+vABDAG8AcAB5AHIAaQBnAGgAdAAgADIAMAAxADMAIABUAGgAZQAgAEEAbgB0AG8AbgBpAG8AIABQ
+AHIAbwBqAGUAYwB0ACAAQQB1AHQAaABvAHIAcwAgACgAaAB0AHQAcABzADoALwAvAGcAaQB0AGgA
+dQBiAC4AYwBvAG0ALwBnAG8AbwBnAGwAZQBmAG8AbgB0AHMALwBhAG4AdABvAG4AaQBvAEYAbwBu
+AHQAKQBBAG4AdABvAG4AaQBvAEIAbwBsAGQAMQAuADAAMAAyADsAbgBlAHcAdAA7AEEAbgB0AG8A
+bgBpAG8ALQBCAG8AbABkAEEAbgB0AG8AbgBpAG8AIABCAG8AbABkAFYAZQByAHMAaQBvAG4AIAAx
+AC4AMAAwADIAQQBuAHQAbwBuAGkAbwAtAEIAbwBsAGQAaAB0AHQAcAA6AC8ALwBzAGMAcgBpAHAA
+dABzAC4AcwBpAGwALgBvAHIAZwAvAE8ARgBMAFcAZQBpAGcAaAB0AAAAAwAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAABAAH//wAPAAEAAAAMAAAAAAAAAAIAAQAAABoAAQAAAAEAAAAKABwA
+HgABREZMVAAIAAQAAAAA//8AAAAAAAAAAQAAAAoAJgAoAAJERkxUAA5sYXRuABgABAAAAAD//wAA
+AAAAAAAAAAAAAAABAAEACAABAAAAFAABAAAAHAACd2dodAEAAAAAAgABAAAAAAEFArwAAAAA
+""")}
+
+ANTONIO_LICENSE = """
+Copyright 2013 The Antonio Project Authors (https://github.com/googlefonts/antonioFont)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded, 
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+"""
 
 
 if __name__ == "__main__":

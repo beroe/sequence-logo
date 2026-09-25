@@ -7,8 +7,8 @@ sys.path.insert(0, str(HERE.parent))
 import matplotlib.pyplot as plt
 import seqlogo as s
 
-FONT = "google:Oswald:700"
-SUFFIX = "-oswald"
+FONT = "builtin:Antonio"
+SUFFIX = "-antonio"
 path, label = s.resolve_font(FONT)
 glyphs = s.GlyphSet(path)
 colors = dict(s.all_color_sets(s.STYLES_FILE)["rasmol"])
