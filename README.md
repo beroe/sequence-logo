@@ -29,6 +29,10 @@ Python 3.10+ with `numpy` and `matplotlib` (which brings in `fontTools`). `certi
 
 Input can be FASTA, Clustal, or plain text with one aligned sequence per line (`-` reads from stdin).
 
+## Web version
+
+`web/` is a browser version with a fixed set of seven typefaces, the built-in color sets, and PNG, SVG or PDF downloads. It runs `seqlogo.py` in the page with [Pyodide](https://pyodide.org), so alignments never leave the visitor's computer and no server is needed; GitHub Pages can host it. To try it locally, run `python3 -m http.server 8000 --bind 127.0.0.1` in the repo folder and open <http://127.0.0.1:8000/web/>. The bundled fonts are from Google Fonts under their own licenses (`web/fonts/*.LICENSE.txt`); `web/make_wordmarks.py` redraws the page's wordmarks.
+
 ## Font specs
 
 | Spec | Meaning |
@@ -62,6 +66,7 @@ Run `./seqlogo.py --help` for the full list.
 | `--no-correction` | turn off the small-sample correction |
 | `--scale-by-occupancy` | shrink stacks in gappy columns |
 | `--start N --end M` | show part of the alignment |
+| `--background black` | black background with white axes and text; black letters are drawn white |
 | `--gap 0.006` | space between stacked letters, as a fraction of the y-axis; `0` for none |
 | `--per-line 40` | stacks per row |
 | `--tick-every 5` | spacing of the position labels |

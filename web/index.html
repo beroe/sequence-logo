@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Everything runs locally: Python (Pyodide) comes from jsDelivr, the rest from this site. -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; connect-src 'self' https://cdn.jsdelivr.net; img-src 'self' blob:; style-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Sequence logo maker: protein sequence logos in your choice of typeface</title>
+<meta name="description" content="Make WebLogo-style protein sequence logos from a FASTA or Clustal alignment, with a choice of typefaces and color schemes. Runs entirely in your browser; your alignment is never uploaded.">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.js"></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<header>
+  <h1><img class="wordmark" src="img/sequencelogo-wordmark-oswald.svg" alt="Sequence logo"></h1>
+  <p>Make WebLogo-style protein sequence logos in a choice of typefaces. Everything runs in
+    your browser: your alignment is never uploaded.</p>
+</header>
+
+<main>
+  <div class="work">
+  <section class="input">
+    <label for="alignment">Alignment</label>
+    <p class="drop-note">Paste an alignment, or drop an alignment file into the box below.
+      <span class="hint">FASTA, Clustal, or one aligned sequence per line.</span></p>
+    <textarea id="alignment" spellcheck="false" autocomplete="off" rows="8"
+              placeholder="Paste an alignment or drop a file here&#10;&#10;&gt;seq1&#10;YKCPECGKSFSQSSNLQKHQRTH&#10;&gt;seq2&#10;..."></textarea>
+    <div class="buttons">
+      <button type="button" id="open">Open file…</button>
+      <input type="file" id="file" hidden
+             accept=".fasta,.fa,.faa,.fas,.aln,.clustal,.txt,text/plain">
+      <button type="button" id="sample">Sample alignment</button>
+      <button type="button" id="clear">Clear</button>
+    </div>
+  </section>
+
+  <section class="preview">
+    <div class="preview-bar">
+      <label><input type="checkbox" id="fullpreview"> Preview the whole alignment
+        <span class="hint">(otherwise the first two rows; downloads always include everything)</span></label>
+      <span class="theme"><span class="rowname">Background</span>
+        <label><input type="radio" name="background" value="white" checked> White</label>
+        <label><input type="radio" name="background" value="black"> Black</label>
+      </span>
+    </div>
+    <p id="status" role="status">Loading Python…</p>
+    <p id="notes" hidden></p>
+    <img id="logo" alt="Sequence logo preview" hidden>
+  </section>
+  </div>
+
+  <section class="options">
+    <fieldset id="fonts">
+      <legend>Typeface</legend>
+    </fieldset>
+
+    <fieldset id="colors">
+      <legend>Colors</legend>
+    </fieldset>
+
+    <fieldset>
+      <legend>Stack height</legend>
+      <label><input type="radio" name="units" value="bits" checked> Bits</label>
+      <label><input type="radio" name="units" value="probability"> Probability</label>
+      <label id="correction-label"><input type="checkbox" id="correction" checked> Small-sample correction</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Layout</legend>
+      <div class="row"><span class="rowname">Gap between letters</span>
+        <label><input type="radio" name="gap" value="0"> None</label>
+        <label><input type="radio" name="gap" value="0.006" checked> Small</label>
+        <label><input type="radio" name="gap" value="0.012"> Larger</label>
+      </div>
+      <div class="row"><span class="rowname">Number every</span>
+        <label><input type="radio" name="tick" value="1" checked> 1</label>
+        <label><input type="radio" name="tick" value="5"> 5</label>
+        <label><input type="radio" name="tick" value="10"> 10</label>
+      </div>
+      <div class="row"><span class="rowname">Stacks per row</span>
+        <label><input type="radio" name="perline" value="40" checked> 40</label>
+        <label><input type="radio" name="perline" value="60"> 60</label>
+        <label><input type="radio" name="perline" value="100"> 100</label>
+      </div>
+      <label><input type="checkbox" id="showfont"> Label with the font name</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Download</legend>
+      <label><input type="radio" name="format" value="png" checked> PNG</label>
+      <label><input type="radio" name="format" value="svg"> SVG</label>
+      <label><input type="radio" name="format" value="pdf"> PDF</label>
+      <button type="button" id="download" disabled>Download</button>
+    </fieldset>
+  </section>
+
+</main>
+
+<footer>
+  <p>Built on <a href="https://github.com/beroe/sequence-logo">seqlogo.py</a>. Information
+    content as in WebLogo (Crooks et al. 2004). Fonts are from Google Fonts, under the
+    SIL Open Font License or Apache License (see <code>web/fonts</code>).</p>
+</footer>
+</body>
+</html>

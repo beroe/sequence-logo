@@ -723,7 +723,8 @@ def draw_logo_rows(fig, gs_rows, heights, glyphs, colors, args, ymax, label=None
             ax.spines[side].set_visible(False)
         axes.append(ax)
     if label:
-        axes[0].set_title(label, loc="left", fontsize=9, color="0.3")
+        axes[0].set_title(label, loc="left", fontsize=9,
+                          color="0.75" if args.background == "black" else "0.3")
     return axes
 
 
@@ -771,6 +772,11 @@ def render(seqs, font_specs, args):
     ymax = args.ymax or (math.log2(len(AMINO_ACIDS)) if args.units == "bits" else 1.0)
     color_names = args.colors or [DEFAULT_COLORS]
     color_sets = [(name, pick_colors(name, Path(args.styles))) for name in color_names]
+    if args.background == "black":
+        # Black letters (mono, okabe_ito's hydrophobics) would vanish: draw them white.
+        color_sets = [(name, {aa: "white" if matplotlib.colors.to_rgb(c) == (0, 0, 0) else c
+                              for aa, c in colors.items()})
+                      for name, colors in color_sets]
     fonts = resolve_fonts(font_specs)
     # One panel per font x colour set; label whichever of the two varies.
     panels = []
@@ -791,6 +797,21 @@ def render(seqs, font_specs, args):
     title_pad = 0.3 if comparing else 0.0
     total_rows = n_rows * grid_rows
     fig_h = total_rows * (row_h + 0.45) + grid_rows * title_pad + (0.4 if args.title else 0)
+    with plt.rc_context(BLACK_BACKGROUND if args.background == "black" else {}):
+        _draw_figure(args, panels, heights, ymax, n_rows, total_rows, grid_cols,
+                     width, fig_h, comparing, color_names, fonts)
+
+
+# Axis lines, ticks and text in white on black; letter colours are unchanged.
+BLACK_BACKGROUND = {
+    "figure.facecolor": "black", "axes.facecolor": "black", "savefig.facecolor": "black",
+    "axes.edgecolor": "white", "axes.labelcolor": "white", "text.color": "white",
+    "xtick.color": "white", "ytick.color": "white",
+}
+
+
+def _draw_figure(args, panels, heights, ymax, n_rows, total_rows, grid_cols,
+                 width, fig_h, comparing, color_names, fonts):
     fig = plt.figure(figsize=(width, fig_h))
     gs = fig.add_gridspec(total_rows, grid_cols, hspace=0.55 + (0.35 if comparing else 0),
                           wspace=0.25)
@@ -806,6 +827,8 @@ def render(seqs, font_specs, args):
         fig.suptitle(args.title, fontsize=11)
     if not args.output:
         args.output = auto_output_name(args.alignment, fonts, color_names)
+        if args.background == "black":
+            args.output = args.output.removesuffix(".png") + "-black.png"
     fig.savefig(args.output, dpi=args.dpi, bbox_inches="tight")
     print(f"wrote {args.output}", file=sys.stderr)
 
@@ -923,6 +946,10 @@ def main(argv=None):
     ap.add_argument("--height", type=float, default=1.8, help="inches per logo line")
     ap.add_argument("--glyph-width", type=float, default=0.9,
                     help="fraction of column filled by a glyph")
+    ap.add_argument("--background", choices=["white", "black"], default="white",
+                    type=str.lower,
+                    help="background colour; on black, axes and text are white and "
+                         "black letters are drawn white")
     ap.add_argument("--gap", type=float, default=0.006,
                     help="space between stacked letters, as a fraction of the y-axis height; 0 for none")
     ap.add_argument("--min-height", type=float, default=0.0,
