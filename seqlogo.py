@@ -955,7 +955,7 @@ def main(argv=None):
     ap.add_argument("--per-line", type=int, default=40, help="stacks per line")
     ap.add_argument("--tick-every", type=int, default=5, help="x-axis label spacing")
     ap.add_argument("--column-width", type=float, default=0.28, help="inches per stack")
-    ap.add_argument("--height", type=float, default=1.8, help="inches per logo line")
+    ap.add_argument("--height", type=float, default=1.35, help="inches per logo line")
     ap.add_argument("--letter-height", type=fraction, default=1.0, metavar="FRACTION",
                     help="scale letter heights, and so the logo's height, e.g. 0.75 or 75%%; "
                          "widths and values are unchanged")

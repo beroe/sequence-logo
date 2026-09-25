@@ -130,7 +130,8 @@ fieldset > label, .row label { margin-right: .9rem; white-space: nowrap; }
 .theme { white-space: nowrap; }
 .theme .rowname { min-width: 0; margin-right: .6rem; }
 .theme label { margin-left: .6rem; }
-#status { color: var(--muted); margin: 0 0 .5rem; }
+/* A fixed line for status messages, so the preview below doesn't jump. */
+#status { color: var(--muted); margin: 0 0 .5rem; min-height: 1.45em; }
 #status.error { color: var(--error); }
-#notes { color: var(--muted); font-size: .85rem; white-space: pre-line; margin: 0 0 .5rem; }
+#notes { color: var(--muted); font-size: .85rem; white-space: pre-line; margin: -.25rem 0 .5rem; }
 #logo { box-sizing: border-box; max-width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: .5rem; }

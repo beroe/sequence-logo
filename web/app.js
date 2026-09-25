@@ -37,6 +37,9 @@ let googleFont = null;     // {name, path} of the loaded Google font, if any
 const googleCache = {};    // "Family 700" -> path in Pyodide's file system
 let googleRequest = 0;     // ignores answers to superseded requests
 let brotliLoaded = false;
+const fontReady = {};      // preset name -> Promise, resolved once it's in Pyodide
+let googleListReady = null;
+let drawing = 0;           // ignores superseded preview requests
 
 function setStatus(text, isError = false) {
   $("status").textContent = text;
@@ -120,15 +123,28 @@ function draw(s) {
   return out;
 }
 
-function refresh() {
+// Wait for a preset font that is still downloading in the background.
+async function fontLoaded(s) {
+  const ready = fontReady[s.font.name];
+  if (ready) {
+    setStatus(`Loading ${s.font.name}…`);
+    await ready;
+  }
+}
+
+async function refresh() {
   if (!makeLogo) return;
   if (choice("font") === "google" && !googleFont) {
     setStatus("Type a Google Fonts family name in the Typeface box.");
     return;
   }
+  const request = ++drawing;
   const perLine = Number(choice("perline"));
   const limit = $("fullpreview").checked ? 0 : PREVIEW_ROWS * perLine;
-  const out = draw(settings("png", PREVIEW_DPI, limit));
+  const s = settings("png", PREVIEW_DPI, limit);
+  await fontLoaded(s);
+  if (request !== drawing) return;
+  const out = draw(s);
   $("notes").hidden = !out.notes;
   $("notes").textContent = out.notes || "";
   if (out.error) {
@@ -160,13 +176,14 @@ function applyTheme() {
 function scheduleRefresh() {
   clearTimeout(pending);
   setStatus("Drawing…");
-  pending = setTimeout(refresh, 350);
+  pending = setTimeout(() => refresh().catch((e) => setStatus(e.message, true)), 350);
 }
 
 async function download() {
   if (choice("font") === "google" && !googleFont) return;
   const format = choice("format");
   const s = settings(format, DOWNLOAD_DPI);
+  await fontLoaded(s);
   setStatus("Preparing download…");
   $("download").disabled = true;
   await new Promise((r) => setTimeout(r, 30));   // let the message appear first
@@ -238,13 +255,15 @@ function suggestions(typed) {
 // While typing, act only on a complete family name (as picked from the
 // drop-down list); complain about unknown names once the box is left or
 // Enter is pressed, so a half-typed name isn't flagged.
-function onGoogleTyping() {
+async function onGoogleTyping() {
+  await googleListReady;
   const { family } = parseGoogleSpec($("gfont").value.trim());
   if (family || !$("gfont").value.trim()) onGoogleInput();
   else if ($("status").classList.contains("error")) setStatus("");
 }
 
-function onGoogleInput() {
+async function onGoogleInput() {
+  await googleListReady;
   $("fonts").querySelector('input[value="google"]').checked = true;
   const text = $("gfont").value.trim();
   const menu = $("gweight");
@@ -317,7 +336,7 @@ async function loadGoogleFont() {
   }
 }
 
-async function setUpGoogleFonts() {
+async function loadGoogleList() {
   googleFonts = await (await fetchFresh("google_fonts.json")).json();
   const list = $("gfont-list");
   for (const name of Object.keys(googleFonts)) {
@@ -326,6 +345,9 @@ async function setUpGoogleFonts() {
     option.value = name;
     list.append(option);
   }
+}
+
+function setUpGoogleFonts() {
   let typing = null;
   $("gfont").addEventListener("input", () => {
     clearTimeout(typing);
@@ -361,26 +383,36 @@ async function loadFile(file) {
   scheduleRefresh();
 }
 
+const fetchBytes = async (url) => new Uint8Array(await (await fetchFresh(url)).arrayBuffer());
+
+// Put a preset font into Pyodide's file system; the preview waits on it only
+// if that font is chosen before it has arrived.
+function installFont(f, bytes) {
+  fontReady[f.name] = bytes.then((b) => {
+    pyodide.FS.writeFile(`/fonts/${f.name}.ttf`, b);
+    delete fontReady[f.name];
+  });
+  return fontReady[f.name];
+}
+
 async function start() {
   buildFontChoices();
+  // Fetch the Python files and the default font while Python itself loads.
+  const sources = [["../seqlogo.py", "/app/seqlogo.py"], ["logo_web.py", "/app/logo_web.py"]]
+    .map(([src, dest]) => fetchFresh(src).then((r) => r.text()).then((text) => [dest, text]));
+  const firstFont = fetchBytes(`fonts/${FONTS[0].file}`);
   pyodide = await loadPyodide();
   setStatus("Loading numpy and matplotlib…");
   await pyodide.loadPackage(["numpy", "matplotlib"]);
 
-  setStatus("Loading fonts…");
   pyodide.FS.mkdirTree("/app");
   pyodide.FS.mkdirTree("/fonts");
-  for (const [src, dest] of [["../seqlogo.py", "/app/seqlogo.py"],
-                             ["logo_web.py", "/app/logo_web.py"]]) {
-    pyodide.FS.writeFile(dest, await (await fetchFresh(src)).text());
-  }
-  for (const f of FONTS) {
-    const bytes = new Uint8Array(await (await fetchFresh(`fonts/${f.file}`)).arrayBuffer());
-    pyodide.FS.writeFile(`/fonts/${f.name}.ttf`, bytes);
-  }
+  for (const [dest, text] of await Promise.all(sources)) pyodide.FS.writeFile(dest, text);
+  await installFont(FONTS[0], firstFont);
   pyodide.runPython("import sys; sys.path.insert(0, '/app')");
   web = pyodide.pyimport("logo_web");
-  await setUpGoogleFonts();
+  setUpGoogleFonts();
+  googleListReady = loadGoogleList();   // not waited for
   makeLogo = web.make_logo;
   const sets = web.color_sets().toJs({ dict_converter: Object.fromEntries });
   buildColorChoices(sets);
@@ -413,6 +445,8 @@ async function start() {
   applyTheme();   // a reload can keep these choices
   updateCorrection();
   await loadSample();
+  // Everything else downloads quietly in the background.
+  for (const f of FONTS.slice(1)) installFont(f, fetchBytes(`fonts/${f.file}`));
 }
 
 start().catch((e) => setStatus(`Could not start: ${e.message}`, true));
